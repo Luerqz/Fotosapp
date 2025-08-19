@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro de nuevos usuarios</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #f4f6f9;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .card {
+      background-color: #fff;
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: 0 10px 25px rgba(6, 41, 11, 0.2);
+      width: min(90vw, 420px);
+    }
+    .card h4 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      color: #1e5a40;
+      font-weight: 700;
+    }
+    .form-control {
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      padding: 12px;
+      font-size: 14px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+      margin-bottom: 1rem;
+    }
+    .form-control:focus {
+      border-color: #257050;
+      box-shadow: 0 0 0 4px rgba(6, 49, 29, 0.12);
+    }
+    .btn-primary {
+      background-color: #297c58;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .btn-primary:hover {
+      background-color:  #24704f;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h4>Registro de nuevos usuarios</h4>
+    <input type="text" id="txt_nombre" class="form-control" placeholder="Escriba el nombre" required />
+    <input type="email" id="txt_email" class="form-control" placeholder="Escriba el email" required />
+    <input type="password" id="txt_clave" class="form-control" placeholder="Escriba la clave" required />
+    <button class="btn btn-primary w-100" onclick="registro()">Registrarse</button>
+  </div>
+
+  <script>
+    async function registro() {
+      const nombre = document.getElementById("txt_nombre").value;
+      const email = document.getElementById("txt_email").value;
+      const clave = document.getElementById("txt_clave").value;
+
+      if (!nombre || !email || !clave) return alert("Completa todos los campos");
+
+      try {
+        const res = await fetch('http://localhost:3000/api/usuarios', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre, email, clave })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          alert('Usuario creado exitosamente');
+          window.location.href = "login.html";
+        } else {
+          alert(data.error || "Error al registrar usuario");
+        }
+      } catch (error) {
+        alert("Error de conexión con el servidor");
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>

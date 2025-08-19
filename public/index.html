@@ -1,0 +1,29 @@
+<html>
+    <head>
+
+    </head>
+    <body>
+
+<input type="button" value="ir a Galeria" onclick="iracarrusel()">
+<input type="button" value="ir a subir fotos"  onclick="iracamisa()">
+<input type="button" value="ir a resultados"  onclick="iraresultado()">
+
+<script>
+function iracarrusel()
+{
+
+    location.href = "/carrusel?token="+ localStorage.getItem("token");
+}
+function iracamisa()
+{
+
+    location.href = "/camiseta?token=" + localStorage.getItem("token");
+}
+function iraresultado()
+{
+
+    location.href = "/resultado?token="+ localStorage.getItem("token");
+}
+</script>
+    </body>
+</html>

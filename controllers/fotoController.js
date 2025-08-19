@@ -1,0 +1,46 @@
+const Foto = require('../models/Foto');
+const multer = require('multer');
+const path = require('path');
+
+// Configuración de multer para guardar archivos en public/uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'public/uploads'),
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
+  }
+});
+
+// Middleware de multer
+exports.upload = multer({ storage }).single('imagen');
+
+// Crear foto
+exports.createFoto = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'No se subió ningún archivo' });
+
+    const { titulo, descripcion } = req.body;
+    const nuevaFoto = new Foto({
+      titulo,
+      descripcion,
+      url: `/uploads/${req.file.filename}`,
+      usuario: req.user.id
+    });
+
+    const fotoGuardada = await nuevaFoto.save();
+    res.status(201).json(fotoGuardada);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al guardar la foto' });
+  }
+};
+
+// Obtener todas las fotos
+exports.getFotos = async (req, res) => {
+  try {
+    const fotos = await Foto.find().populate('usuario', 'nombre email');
+    res.json(fotos);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener fotos' });
+  }
+};
