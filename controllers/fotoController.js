@@ -2,7 +2,7 @@ const Foto = require('../models/Foto');
 const multer = require('multer');
 const path = require('path');
 
-// Configuración de multer para guardar archivos en public/uploads
+// Configuración de multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'public/uploads'),
   filename: (req, file, cb) => {
@@ -10,8 +10,6 @@ const storage = multer.diskStorage({
     cb(null, `${file.fieldname}-${uniqueSuffix}${path.extname(file.originalname)}`);
   }
 });
-
-// Middleware de multer
 exports.upload = multer({ storage }).single('imagen');
 
 // Crear foto
@@ -42,5 +40,32 @@ exports.getFotos = async (req, res) => {
     res.json(fotos);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener fotos' });
+  }
+};
+
+// Editar foto
+exports.updateFoto = async (req, res) => {
+  try {
+    const { titulo, descripcion } = req.body;
+    const foto = await Foto.findByIdAndUpdate(
+      req.params.id,
+      { titulo, descripcion },
+      { new: true }
+    );
+    if (!foto) return res.status(404).json({ msg: 'Foto no encontrada' });
+    res.json(foto);
+  } catch (err) {
+    res.status(500).json({ msg: 'Error en el servidor', error: err });
+  }
+};
+
+// Eliminar foto
+exports.deleteFoto = async (req, res) => {
+  try {
+    const foto = await Foto.findByIdAndDelete(req.params.id);
+    if (!foto) return res.status(404).json({ msg: 'Foto no encontrada' });
+    res.json({ msg: 'Foto eliminada correctamente' });
+  } catch (err) {
+    res.status(500).json({ msg: 'Error en el servidor', error: err });
   }
 };

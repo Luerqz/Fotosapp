@@ -1,18 +1,21 @@
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
 
-exports.verificarToken = (req, res, next) => {
+module.exports = (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  if (!authHeader) return res.status(401).json({ error: 'Token no proporcionado' });
+  if (!authHeader) {
+    return res.status(401).json({ msg: 'No autorizado, falta token' });
+  }
 
-  const token = authHeader.split(' ')[1]; // quitar "Bearer "
-  if (!token) return res.status(401).json({ error: 'Token inválido' });
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ msg: 'Token inválido' });
+  }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: decoded.id }; // guardar id del usuario en req.user
+    req.user = decoded;
     next();
-  } catch (error) {
-    return res.status(401).json({ error: 'Token inválido' });
+  } catch (err) {
+    return res.status(401).json({ msg: 'Token no válido' });
   }
 };

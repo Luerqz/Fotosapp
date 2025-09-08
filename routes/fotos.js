@@ -1,9 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const fotoController = require('../controllers/fotoController');
-const { verificarToken } = require('../seguridad/auth');
+const authMiddleware = require('../seguridad/auth');
 
-router.post('/', verificarToken, fotoController.upload, fotoController.createFoto);
-router.get('/', verificarToken, fotoController.getFotos);
+// Obtener fotos
+router.get('/fotos', authMiddleware, fotoController.getFotos);
+
+// Subir nueva foto
+router.post('/fotos', authMiddleware, fotoController.upload, fotoController.createFoto);
+
+// Editar foto
+router.put('/fotos/:id', authMiddleware, fotoController.updateFoto);
+
+// Eliminar foto
+router.delete('/fotos/:id', authMiddleware, fotoController.deleteFoto);
 
 module.exports = router;

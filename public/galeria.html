@@ -6,75 +6,115 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-  <div class="container py-5">
-    <h1 class="text-center mb-4">Galería de Fotos</h1>
-
-    <div class="card p-4 mb-4">
-      <h4>Subir nueva foto</h4>
-      <input type="text" id="titulo" class="form-control mb-2" placeholder="Título" required>
-      <input type="text" id="descripcion" class="form-control mb-2" placeholder="Descripción">
-      <input type="file" id="imagen" class="form-control mb-2" required>
-      <button id="btnSubir" class="btn btn-primary w-100">Subir Foto</button>
+  <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h1>📷 Galería</h1>
+      <button id="btnLogout" class="btn btn-danger">Cerrar Sesión</button>
     </div>
 
+    <!-- Formulario para subir foto -->
+    <form id="formFoto" class="mb-4">
+      <input type="text" id="titulo" class="form-control mb-2" placeholder="Título" required>
+      <input type="text" id="descripcion" class="form-control mb-2" placeholder="Descripción">
+      <input type="file" id="imagen" class="form-control mb-2" accept="image/*" required>
+      <button type="submit" class="btn btn-primary w-100">Subir Foto</button>
+    </form>
+
+    <!-- Contenedor de la galería -->
     <div id="galeria" class="row"></div>
   </div>
 
   <script>
     const token = localStorage.getItem('token');
-    const galeria = document.getElementById('galeria');
-    const btnSubir = document.getElementById('btnSubir');
-
-    // Cargar fotos existentes
-    async function cargarFotos() {
-      const res = await fetch('http://localhost:3000/api/fotos', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const fotos = await res.json();
-      galeria.innerHTML = fotos.map(f => `
-        <div class="col-md-3 mb-3">
-          <div class="card">
-            <img src="${f.url}" class="card-img-top">
-            <div class="card-body">
-              <h5 class="card-title">${f.titulo}</h5>
-              <p class="card-text">${f.descripcion || ''}</p>
-              <small>Subida por: ${f.usuario.nombre}</small>
-            </div>
-          </div>
-        </div>
-      `).join('');
+    if (!token) {
+      alert("⚠️ Debes iniciar sesión primero");
+      location.href = "login.html";
     }
 
-    cargarFotos();
+    // Cerrar sesión
+    document.getElementById("btnLogout").addEventListener("click", () => {
+      localStorage.removeItem("token");
+      location.href = "login.html";
+    });
 
-    // Subir nueva foto
-    btnSubir.addEventListener('click', async () => {
-      const titulo = document.getElementById('titulo').value;
-      const descripcion = document.getElementById('descripcion').value;
-      const fileInput = document.getElementById('imagen');
-
-      if (!fileInput.files[0]) return alert('Seleccione un archivo');
+    // Subir foto
+    document.getElementById("formFoto").addEventListener("submit", async (e) => {
+      e.preventDefault();
 
       const formData = new FormData();
-      formData.append('titulo', titulo);
-      formData.append('descripcion', descripcion);
-      formData.append('imagen', fileInput.files[0]);
+      formData.append("titulo", document.getElementById("titulo").value);
+      formData.append("descripcion", document.getElementById("descripcion").value);
+      formData.append("imagen", document.getElementById("imagen").files[0]);
 
-      const res = await fetch('http://localhost:3000/api/fotos', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
+      const res = await fetch("http://localhost:3000/api/fotos", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + token },
         body: formData
       });
 
-      const data = await res.json();
       if (res.ok) {
-        alert('Foto subida exitosamente');
+        alert("✅ Foto subida correctamente");
         cargarFotos();
+        document.getElementById("formFoto").reset();
       } else {
-        alert(data.error);
+        const err = await res.json();
+        alert("❌ " + (err.error || err.msg || "Error al subir foto"));
       }
     });
+
+    // Cargar galería
+    async function cargarFotos() {
+      const res = await fetch("http://localhost:3000/api/fotos", {
+        headers: { "Authorization": "Bearer " + token }
+      });
+
+      if (!res.ok) {
+        alert("⚠️ Sesión expirada. Vuelve a iniciar sesión.");
+        localStorage.removeItem("token");
+        location.href = "login.html";
+        return;
+      }
+
+      const fotos = await res.json();
+      const contenedor = document.getElementById("galeria");
+      contenedor.innerHTML = "";
+
+      fotos.forEach(foto => {
+        const div = document.createElement("div");
+        div.className = "col-md-4 mb-4";
+        div.innerHTML = `
+          <div class="card">
+            <img src="${foto.url}" class="card-img-top" alt="${foto.titulo}">
+            <div class="card-body">
+              <h5 class="card-title">${foto.titulo}</h5>
+              <p class="card-text">${foto.descripcion || ""}</p>
+              <button class="btn btn-danger btn-sm" onclick="eliminarFoto('${foto._id}')">Eliminar</button>
+            </div>
+          </div>
+        `;
+        contenedor.appendChild(div);
+      });
+    }
+
+    // Eliminar foto
+    async function eliminarFoto(id) {
+      if (!confirm("¿Seguro que deseas eliminar esta foto?")) return;
+
+      const res = await fetch(`http://localhost:3000/api/fotos/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": "Bearer " + token }
+      });
+
+      if (res.ok) {
+        alert("🗑️ Foto eliminada");
+        cargarFotos();
+      } else {
+        alert("❌ Error al eliminar");
+      }
+    }
+
+    // Inicializar galería
+    cargarFotos();
   </script>
 </body>
 </html>
-

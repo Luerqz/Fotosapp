@@ -1,32 +1,20 @@
 const express = require('express');
-const mongoose = require('mongoose');
+const conectarDB = require('./config/db');
+const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 
-const usuarioRoutes = require('./routes/usuarios');
-const fotoRoutes = require('./routes/fotos');
-
 const app = express();
-const PORT = process.env.PORT || 3000;
+conectarDB();
 
-// Middleware
+app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Servir archivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Conectar MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('MongoDB conectado'))
-.catch(err => console.error(err));
-
 // Rutas
-app.use('/api/usuarios', usuarioRoutes);
-app.use('/api/fotos', fotoRoutes);
+app.use('/api/auth', require('./routes/usuarios'));
+app.use('/api', require('./routes/fotos'));
 
-// Iniciar servidor
-app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));
+// Servidor
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
