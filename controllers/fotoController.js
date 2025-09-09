@@ -44,6 +44,7 @@ exports.getFotos = async (req, res) => {
 };
 
 // Editar foto
+
 exports.updateFoto = async (req, res) => {
   try {
     const { titulo, descripcion } = req.body;
@@ -67,5 +68,28 @@ exports.deleteFoto = async (req, res) => {
     res.json({ msg: 'Foto eliminada correctamente' });
   } catch (err) {
     res.status(500).json({ msg: 'Error en el servidor', error: err });
+  }
+};
+
+exports.updateFoto = async (req, res) => {
+  try {
+    const { titulo, descripcion } = req.body;
+    
+    // Encuentra y edita la foto solo si pertenece al usuario autenticado
+    const foto = await Foto.findOneAndUpdate(
+      { _id: req.params.id, usuario: req.user.id },
+      { titulo, descripcion },
+      { new: true }
+    );
+
+    if (!foto) {
+      // Decide si la foto no existe o no pertenece al usuario
+      return res.status(404).json({ msg: 'Foto no encontrada o no tienes permiso para editarla' });
+    }
+    
+    res.json(foto);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: 'Error en el servidor' });
   }
 };

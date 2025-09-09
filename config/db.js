@@ -10,6 +10,7 @@ const options = {
   useUnifiedTopology: true
 };
 
+
 // Función para conectar a la base de datos
 const connectDB = async () => {
   try {

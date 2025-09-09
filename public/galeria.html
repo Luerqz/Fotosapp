@@ -81,15 +81,17 @@
 
       fotos.forEach(foto => {
         const div = document.createElement("div");
-        div.className = "col-md-4 mb-4";
+         div.className = "col-md-4 mb-4";
+        div.setAttribute('data-id', foto._id); // Add this line
         div.innerHTML = `
           <div class="card">
             <img src="${foto.url}" class="card-img-top" alt="${foto.titulo}">
-            <div class="card-body">
+          <div class="card-body">
               <h5 class="card-title">${foto.titulo}</h5>
               <p class="card-text">${foto.descripcion || ""}</p>
               <button class="btn btn-danger btn-sm" onclick="eliminarFoto('${foto._id}')">Eliminar</button>
-            </div>
+              <button class="btn btn-danger btn-sm" onclick="editarFoto('${foto._id}')">Editar</button>
+          </div>
           </div>
         `;
         contenedor.appendChild(div);
@@ -110,6 +112,37 @@
         cargarFotos();
       } else {
         alert("❌ Error al eliminar");
+      }
+    }
+
+            // Editar foto
+    async function editarFoto(id) {
+      const fotoCard = document.querySelector(`[data-id="${id}"]`); // Encuentra la tarjeta por data-id
+      const currentTitle = fotoCard.querySelector('.card-title').innerText;
+      const currentDescripcion = fotoCard.querySelector('.card-text').innerText;
+
+      const newTitulo = prompt("Ingresa el nuevo título:", currentTitle);
+      if (newTitulo === null) return; // Pide los nuevos valores
+
+      const newDescripcion = prompt("Ingresa la nueva descripción:", currentDescripcion);
+      if (newDescripcion === null) return; // Pide los nuevos valores
+
+      const res = await fetch(`http://localhost:3000/api/fotos/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({ titulo: newTitulo, descripcion: newDescripcion })
+      });
+      
+      if (res.ok) {// Muestra los nuevos valores
+
+        alert("✅ Foto editada correctamente");
+        cargarFotos();
+      } else {
+        const err = await res.json();
+        alert("❌ " + (err.error || err.msg || "Error al editar la foto"));
       }
     }
 

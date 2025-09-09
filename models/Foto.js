@@ -7,4 +7,4 @@ const FotoSchema = new mongoose.Schema({
   usuario: { type: mongoose.Schema.Types.ObjectId, ref: 'Usuario' }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Foto', FotoSchema);
+module.exports = mongoose.model('Foto', FotoSchema); 
